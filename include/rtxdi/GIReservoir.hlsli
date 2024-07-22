@@ -62,7 +62,7 @@ static const uint RTXDI_PackedGIReservoir_MiscDataMask = 0xffff0000;
 
 // Converts a GIReservoir into its packed form.
 // This function should be used only when the application needs to store data with the given argument.
-// It can be retrieved when unpacking the GIReservoir, but RTXDI SDK doesn't use the filed at all. 
+// It can be retrieved when unpacking the GIReservoir, but RTXDI SDK doesn't use the field at all. 
 RTXDI_PackedGIReservoir RTXDI_PackGIReservoir(const RTXDI_GIReservoir reservoir, const uint miscData)
 {
     RTXDI_PackedGIReservoir data;

@@ -38,7 +38,7 @@ namespace rtxdi
 
     enum class ReGIRMode : uint32_t
     {
-        Disabled = 0,
+        Disabled = RTXDI_REGIR_DISABLED,
         Grid = RTXDI_REGIR_GRID,
         Onion = RTXDI_REGIR_ONION
     };
