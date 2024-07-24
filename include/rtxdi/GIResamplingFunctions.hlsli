@@ -64,23 +64,23 @@ void RTXDI_FinalizeGIResampling(
 }
 
 // Calculate the elements of the Jacobian to transform the sample's solid angle.
-void RTXDI_CalculatePartialJacobian(const float3 recieverPos, const float3 samplePos, const float3 sampleNormal,
+void RTXDI_CalculatePartialJacobian(const float3 receiverPos, const float3 samplePos, const float3 sampleNormal,
     out float distanceToSurface, out float cosineEmissionAngle)
 {
-    float3 vec = recieverPos - samplePos;
+    float3 vec = receiverPos - samplePos;
 
     distanceToSurface = length(vec);
     cosineEmissionAngle = saturate(dot(sampleNormal, vec / distanceToSurface));
 }
 
 // Calculates the full Jacobian for resampling neighborReservoir into a new receiver surface
-float RTXDI_CalculateJacobian(float3 recieverPos, float3 neighborReceiverPos, const RTXDI_GIReservoir neighborReservoir)
+float RTXDI_CalculateJacobian(float3 receiverPos, float3 neighborReceiverPos, const RTXDI_GIReservoir neighborReservoir)
 {
     // Calculate Jacobian determinant to adjust weight.
     // See Equation (11) in the ReSTIR GI paper.
     float originalDistance, originalCosine;
     float newDistance, newCosine;
-    RTXDI_CalculatePartialJacobian(recieverPos, neighborReservoir.position, neighborReservoir.normal, newDistance, newCosine);
+    RTXDI_CalculatePartialJacobian(receiverPos, neighborReservoir.position, neighborReservoir.normal, newDistance, newCosine);
     RTXDI_CalculatePartialJacobian(neighborReceiverPos, neighborReservoir.position, neighborReservoir.normal, originalDistance, originalCosine);
 
     float jacobian = (newCosine * originalDistance * originalDistance)

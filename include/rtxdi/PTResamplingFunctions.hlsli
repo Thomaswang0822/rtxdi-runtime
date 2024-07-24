@@ -11,6 +11,10 @@
 // TODO: 
 // Understand Daqi's ReSTIR PT code, which is Falcor-native, and translate relevant functions here.
 // In particular, perform random replay with RTXDI_PTReservoir different from RTXDI_GIReservoir.
+// UPDATE:
+// Sticking to RTXDI may be an overkill, because only RAB_Surface (instead of something
+// called RAB_Path is exposed to RTXDI. Instead, look at [RTXPT](https://github.com/NVIDIAGameWorks/RTX-Path-Tracing/tree/main/RTXPT/PathTracer).
+// It should be somewhat similar to {Falcor_root}/Source/RenderPasses/PathTracer/ .
 
 #ifndef PT_RESAMPLING_FUNCTIONS_HLSLI
 #define PT_RESAMPLING_FUNCTIONS_HLSLI
@@ -49,9 +53,8 @@ bool RTXDI_CombinePTReservoirs(
 
     if (selectSample)
     {
-        reservoir.position = newReservoir.position;
-        reservoir.normal = newReservoir.normal;
-        reservoir.radiance = newReservoir.radiance;
+        reservoir.kReconnectId = newReservoir.kReconnectId;
+        reservoir.rngState = newReservoir.rngState;
         reservoir.age = newReservoir.age;
     }
 
@@ -68,24 +71,24 @@ void RTXDI_FinalizePTResampling(
 }
 
 // Calculate the elements of the Jacobian to transform the sample's solid angle.
-void RTXDI_CalculatePartialJacobian(const float3 recieverPos, const float3 samplePos, const float3 sampleNormal,
+void RTXDI_CalculatePartialJacobian(const float3 receiverPos, const float3 samplePos, const float3 sampleNormal,
     out float distanceToSurface, out float cosineEmissionAngle)
 {
-    float3 vec = recieverPos - samplePos;
+    float3 vec = receiverPos - samplePos;
 
     distanceToSurface = length(vec);
     cosineEmissionAngle = saturate(dot(sampleNormal, vec / distanceToSurface));
 }
 
 // Calculates the full Jacobian for resampling neighborReservoir into a new receiver surface
-float RTXDI_CalculateJacobian(float3 recieverPos, float3 neighborReceiverPos, const RTXDI_PTReservoir neighborReservoir)
+float RTXDI_CalculateJacobian(float3 receiverPos, float3 neighborReceiverPos, const RTXDI_PTReservoir neighborReservoir)
 {
     // Calculate Jacobian determinant to adjust weight.
     // See Equation (11) in the ReSTIR PT paper.
     float originalDistance, originalCosine;
     float newDistance, newCosine;
-    RTXDI_CalculatePartialJacobian(recieverPos, neighborReservoir.position, neighborReservoir.normal, newDistance, newCosine);
-    RTXDI_CalculatePartialJacobian(neighborReceiverPos, neighborReservoir.position, neighborReservoir.normal, oriPTnalDistance, oriPTnalCosine);
+    RTXDI_CalculatePartialJacobian(receiverPos, neighborReservoir.position, neighborReservoir.normal, newDistance, newCosine);
+    RTXDI_CalculatePartialJacobian(neighborReceiverPos, neighborReservoir.position, neighborReservoir.normal, originalDistance, originalCosine);
 
     float jacobian = (newCosine * originalDistance * originalDistance)
         / (originalCosine * newDistance * newDistance);
